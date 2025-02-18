@@ -1,4 +1,4 @@
-from kolesky.cordering.maxheap cimport Heap
+from .maxheap cimport Heap
 from scipy.spatial import KDTree
 import numpy as np
 cimport numpy as np

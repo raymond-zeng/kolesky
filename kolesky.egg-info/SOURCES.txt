@@ -12,4 +12,5 @@ kolesky.egg-info/top_level.txt
 kolesky/_cordering/__init__.py
 kolesky/_cordering/maxheap.c
 kolesky/_cordering/maxheap.pxd
+kolesky/_cordering/mkl.pxd
 kolesky/_cordering/ordering.c

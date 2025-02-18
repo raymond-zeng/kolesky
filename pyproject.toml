@@ -1,3 +1,7 @@
 [build-system]
 requires = ["setuptools", "wheel", "numpy", "Cython"]
 build-backend = "setuptools.build_meta"
+[project]
+name = "kolesky"
+version = "0.1.0"
+requires-python = ">= 3.8"

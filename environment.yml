@@ -4,7 +4,7 @@ channels:
   - defaults
   - https://software.repos.intel.com/python/conda/
 dependencies:
-  - python=3.11
+  - python
   - cython
   - pygments
   - numpy

@@ -4,7 +4,7 @@ Version: 0.1.0
 Author: Raymond Zeng
 Requires-Dist: numpy
 Requires-Dist: scipy
-Requires-Dist: sklearn
+Requires-Dist: scikit-learn
 Dynamic: author
 Dynamic: description
 Dynamic: requires-dist

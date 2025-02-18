@@ -12,10 +12,10 @@ include_dirs = [
     str(path / ".venv/include"),
     np.get_include(),
 ]
-# library_dirs = [
-#     str(path / "lib"),
-#     str(path / ".venv/lib"),
-# ]
+library_dirs = [
+    str(path / "lib"),
+    str(path / ".venv/lib"),
+]
 # https://www.hlibpro.com/doc/3.1/install.html
 # https://www.intel.com/content/www/us/en/develop/documentation/get-started-with-mkl-for-dpcpp/top.html
 libraries = [
@@ -54,6 +54,7 @@ extensions = [
         ["kolesky/_cordering/*.pyx"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         include_dirs=include_dirs,
+        library_dirs=library_dirs,
         libraries=libraries,
         extra_compile_args=extra_compile_args,
     ),
@@ -65,7 +66,7 @@ setup(
     version = '0.1.0',
     packages = find_packages(),
     long_description=open('README.md').read(),
-    install_requires = ["numpy", "scipy", "sklearn"],
+    install_requires = ["numpy", "scipy", "scikit-learn"],
     ext_modules=cythonize(
         extensions,
         annotate=True,

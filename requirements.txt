@@ -1,0 +1,5 @@
+setuptools
+cython
+numpy
+scipy
+scikit-learn
