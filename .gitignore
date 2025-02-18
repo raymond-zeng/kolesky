@@ -1,0 +1,28 @@
+result
+.direnv/
+.envrc
+__pycache__/
+# conda virtual environment
+.venv/
+# Cython build artifacts
+build/
+*.so
+*.c
+*.html
+# numpy arrays
+*.npy
+# remote cluster files
+jobs/
+# datasets used for the experiments
+data/
+datasets/
+# images
+*.png
+*.mp4
+# pbbfmm3d
+output/
+# hlibpro
+include/
+lib/
+test/
+dist/
