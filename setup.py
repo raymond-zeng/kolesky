@@ -51,7 +51,7 @@ extra_compile_args = ["-Wall", "-O3", "-fopenmp", "-fPIC"]
 extensions = [
     Extension(
         "*",
-        ["kolesky/_cordering/*.pyx"],
+        ["kolesky/*.pyx"],
         define_macros=[("NPY_NO_DEPRECATED_API", "NPY_1_7_API_VERSION")],
         include_dirs=include_dirs,
         library_dirs=library_dirs,

@@ -26,3 +26,4 @@ include/
 lib/
 test/
 dist/
+*.egg-info

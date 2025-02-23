@@ -2,12 +2,13 @@ Metadata-Version: 2.2
 Name: kolesky
 Version: 0.1.0
 Author: Raymond Zeng
+Author-email: Raymond Zeng <rzeng42@gatech.edu>
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
 Requires-Dist: numpy
 Requires-Dist: scipy
 Requires-Dist: scikit-learn
 Dynamic: author
-Dynamic: description
-Dynamic: requires-dist
 
 # kolesky
 

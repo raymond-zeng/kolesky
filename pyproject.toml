@@ -3,5 +3,8 @@ requires = ["setuptools", "wheel", "numpy", "Cython"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "kolesky"
+authors = [{name = "Raymond Zeng", email = "rzeng42@gatech.edu"}]
+dependencies = ["numpy", "scipy", "scikit-learn"]
+readme = "README.md"
 version = "0.1.0"
-requires-python = ">= 3.8"
+requires-python = ">= 3.11"

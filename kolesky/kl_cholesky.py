@@ -1,5 +1,5 @@
-from kolesky._cordering.ordering import p_reverse_maximin
-from kolesky._cordering.ordering import sparsity_pattern
+from kolesky.ordering import p_reverse_maximin
+from kolesky.ordering import sparsity_pattern
 
 import numpy as np
 from scipy.spatial import KDTree
