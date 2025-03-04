@@ -1,1 +1,2 @@
-include kolesky/_cordering/*.pxd
+include kolesky/*.pyx
+include kolesky/*.pxd

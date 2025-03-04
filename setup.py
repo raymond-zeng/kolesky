@@ -63,10 +63,10 @@ extensions = [
 setup(
     name= 'kolesky',
     author = 'Raymond Zeng',
-    version = '0.1.0',
+    version = '0.1.3',
     packages = find_packages(),
     long_description=open('README.md').read(),
-    install_requires = ["numpy", "scipy", "scikit-learn"],
+    install_requires = ["numpy", "scipy", "scikit-learn", "mkl>=2021.4.0"],
     ext_modules=cythonize(
         extensions,
         annotate=True,
