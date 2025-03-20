@@ -2,7 +2,6 @@ from .maxheap cimport Heap
 from scipy.spatial import KDTree
 import numpy as np
 cimport numpy as np
-from . cimport mkl
 
 cpdef void update_dists(
     Heap heap,
@@ -50,7 +49,7 @@ cdef double[::1] _distance_vector(double[:, ::1] points, double[::1] point):
            d = (start + i*n)[j] - p[j]
            dist += d*d
        dists[i] = dist
-   mkl.vdSqrt(points.shape[0], &dists[0], &dists[0])
+   dists = np.sqrt(dists)
    return dists
 
 cpdef tuple reverse_maximin(np.ndarray[np.float64_t, ndim=2] points, double[:, ::1] initial = None):
