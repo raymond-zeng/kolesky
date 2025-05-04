@@ -80,5 +80,35 @@ def kl_cholesky(points, kernel, rho, lamb, initial = None, p = 1):
     ordered_points = points[indices]
     sparsity = sparsity_pattern(ordered_points, lengths, rho)
     groups, agg_sparsity = __supernodes(sparsity, lengths, lamb)
-    # return __aggregate_chol(ordered_points, kernel, agg_sparsity, groups), indices
-    return parallel_aggregate_chol(ordered_points, kernel, agg_sparsity, groups), indices
+    return __aggregate_chol(ordered_points, kernel, agg_sparsity, groups), indices
+    # return parallel_aggregate_chol(ordered_points, kernel, agg_sparsity, groups), indices
+
+def ichol(A, sparsity):
+    n = len(A)
+    for i in range(n):
+        for j in sparsity[i]:
+            A[i, j] -= np.dot(A[i, :j - 1], A[j,: j - 1])
+            if (A[i, i] > 0):
+                if j > i:
+                    A[i, j] /= A[i, i]
+                else:
+                    A[i, j] = np.sqrt(A[i, j])
+    # print(A)
+
+def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1):
+    n = len(points)
+    indices, lengths = p_reverse_maximin(points, initial, p)
+    ordered_points = points[indices]
+    sparsity = sparsity_pattern(ordered_points, lengths, rho)
+    groups, agg_sparsity = __supernodes(sparsity, lengths, lamb)
+    L, order = __aggregate_chol(ordered_points, kernel, agg_sparsity, groups), indices
+    A = L.toarray()
+    for i in range(n):
+        for k in range(len(sparsity[i])):
+            j = sparsity[i][k]
+            A[i, j] = np.dot(A[i, :], A[j, :])
+            if i == j:
+                A[i, j] += 1 / noise
+    ichol(A, sparsity)
+    return L, A, order
+    
