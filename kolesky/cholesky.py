@@ -86,11 +86,11 @@ def kl_cholesky(points, kernel, rho, lamb, initial = None, p = 1):
 def innerprod(iter1, u1, iter2, u2, indices, data):
     prod = 0
     while iter1 <= u1 and iter2 <= u2:
-        if indices[iter1] == indices[iter2]:
+        while iter1 <= u1 and iter2 <= u2 and indices[iter1] == indices[iter2]:
             prod += data[iter1] * data[iter2]
             iter1 += 1
             iter2 += 1
-        elif indices[iter1] < indices[iter2]:
+        if indices[iter1] < indices[iter2]:
             iter1 += 1
         else:
             iter2 += 1
@@ -116,20 +116,6 @@ def ichol(A):
                     data[j] = np.sqrt(data[j])
             else:
                 data[j] = 0
-# def test_ichol(points, kernel, rho, initial = None, p = 1):
-#     n = len(points)
-#     indices, lengths = p_reverse_maximin(points, initial, p)
-#     ordered_points = points[indices]
-#     sparsity = sparsity_pattern(ordered_points, lengths, rho)
-#     A = kernel(ordered_points)
-#     # remove upper triangular points
-#     for i in range(n):
-#         sparsity[i].sort()
-#         for j in range(i + 1, n):
-#             A[i, j] = 0
-#     # print(A)
-#     ichol(A, sparsity)
-#     return A, indices
 
 def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1):
     n = len(points)
@@ -138,8 +124,7 @@ def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1):
     sparsity = sparsity_pattern(ordered_points, lengths, rho)
     groups, agg_sparsity = __supernodes(sparsity, lengths, lamb)
     L = __aggregate_chol(ordered_points, kernel, agg_sparsity, groups)
-    A = sparse.triu(L.T @ L, format='csc')
-    print(A)
+    A = sparse.triu(L @ L.T, format='csc')
     A += sparse.csc_matrix(np.linalg.inv(noise))
     ichol(A)
     return L, A, indices
