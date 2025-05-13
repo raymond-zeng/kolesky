@@ -3,7 +3,7 @@ from scipy.spatial import KDTree
 import numpy as np
 cimport numpy as np
 
-cpdef void update_dists(
+cdef inline void update_dists(
     Heap heap,
     double[:, ::1] dists,
     double[::1] dists_k,
@@ -32,13 +32,13 @@ cpdef void update_dists(
         heap.__decrease_key(j, dists[j, p - 1])
 
 np.import_array()
-cdef double[::1] _distance_vector(double[:, ::1] points, double[::1] point):
+cdef inline double[::1] _distance_vector(double[:, ::1] points, double[::1] point):
    cdef:
        int n, i, j
        double dist, d
        double *start
        double *p
-       double[::1] dists
+       np.ndarray[np.float64_t, ndim=1] dists
    n = points.shape[1]
    start = &points[0, 0]
    p = &point[0]
@@ -49,7 +49,7 @@ cdef double[::1] _distance_vector(double[:, ::1] points, double[::1] point):
            d = (start + i*n)[j] - p[j]
            dist += d*d
        dists[i] = dist
-   dists = np.sqrt(dists)
+   np.sqrt(dists, out=dists)
    return dists
 
 cpdef tuple reverse_maximin(np.ndarray[np.float64_t, ndim=2] points, double[:, ::1] initial = None):

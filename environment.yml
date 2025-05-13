@@ -9,7 +9,6 @@ dependencies:
   - pygments
   - numpy
   - scipy
-  - mkl-devel>=2021.4.0
   - scikit-learn
   - matplotlib
   - tbb-devel>=2021.11.0

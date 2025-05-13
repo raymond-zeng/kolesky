@@ -1,11 +1,14 @@
 from kolesky.ordering import p_reverse_maximin
 from kolesky.ordering import sparsity_pattern
+from kolesky.nugget import ichol
+from kolesky.nugget import parallel_ichol
 
 import numpy as np
 from scipy.spatial import KDTree
 import scipy.linalg
 import scipy.sparse as sparse
 import sklearn.gaussian_process.kernels as kernels
+from copy import deepcopy
 
 from multiprocessing import Pool, RawArray
 
@@ -96,7 +99,7 @@ def innerprod(iter1, u1, iter2, u2, indices, data):
             iter2 += 1
     return prod
 
-def ichol(A):
+def py_ichol(A):
     indptr = A.indptr #ind
     indices = A.indices #jnd
     data = A.data
@@ -126,6 +129,9 @@ def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1):
     L = __aggregate_chol(ordered_points, kernel, agg_sparsity, groups)
     A = sparse.triu(L @ L.T, format='csc')
     A += sparse.csc_matrix(np.linalg.inv(noise))
-    ichol(A)
-    return L, A, indices
+    U = deepcopy(A)
+    parallel_ichol(A.indptr, A.indices, A.data, U.data, sweeps=5)
+    # ichol(U.indptr, U.indices, U.data)
+    # py_ichol(A)
+    return L, U, indices
     

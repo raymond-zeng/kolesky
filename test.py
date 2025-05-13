@@ -14,7 +14,7 @@ def sparse_kl_div(A, L):
     return 0.5 * (-logdet_chol(L) - np.linalg.slogdet(A)[1])
 
 np.random.seed(0)
-n = 10
+n = 50
 points = np.zeros((n * n, 2))
 for i in range(n):
     for j in range(n):
@@ -24,7 +24,7 @@ noise = np.eye(len(points)) * 0.3
 # # L, ordering = kolesky.kl_cholesky(points, kernels.Matern(nu=0.5, length_scale=1), 3.0, 1.5)
 # # print(L)
 kernel = kernels.Matern(nu=0.5, length_scale=1)
-L, U_tilde, ordering = kolesky.noise_cholesky(points, kernel, 3.0, 1.5, noise)
+L, U_tilde, ordering = kolesky.noise_cholesky(points, kernel, 3, 1.5, noise)
 L = L.toarray()
 ordered_points = points[ordering]
 true = kernel(ordered_points) + noise

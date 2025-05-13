@@ -37,9 +37,6 @@ libraries = [
     "m",
     "stdc++",
 ] + [
-    "mkl_intel_lp64",
-    "mkl_intel_thread",
-    "mkl_core",
     "iomp5",
     "pthread",
     "m",
@@ -66,7 +63,7 @@ setup(
     version = '0.1.3',
     packages = find_packages(),
     long_description=open('README.md').read(),
-    install_requires = ["numpy", "scipy", "scikit-learn", "mkl>=2021.4.0"],
+    install_requires = ["numpy", "scipy", "scikit-learn"],
     ext_modules=cythonize(
         extensions,
         annotate=True,

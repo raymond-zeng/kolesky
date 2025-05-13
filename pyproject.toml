@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kolesky"
 authors = [{name = "Raymond Zeng", email = "rzeng42@gatech.edu"}]
-#dependencies = ["numpy", "scipy", "scikit-learn", "mkl>=2021.4.0", "tbb-devel>=2021.11.0", "libblas", "liblapack", "libzlib", "fftw", "hdf5==1.10.*", "gsl", "cgal-cpp"]
-dependencies = ["numpy", "scipy", "scikit-learn", "mkl>=2021.4.0"]
+#dependencies = ["numpy", "scipy", "scikit-learn", "tbb-devel>=2021.11.0", "libblas", "liblapack", "libzlib", "fftw", "hdf5==1.10.*", "gsl", "cgal-cpp"]
+dependencies = ["numpy", "scipy", "scikit-learn"]
 readme = "README.md"
 version = "0.1.3"
 requires-python = ">= 3.10"
