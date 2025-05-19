@@ -120,7 +120,7 @@ def py_ichol(A):
             else:
                 data[j] = 0
 
-def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1):
+def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1, sweeps=5):
     n = len(points)
     indices, lengths = p_reverse_maximin(points, initial, p)
     ordered_points = points[indices]
@@ -130,7 +130,7 @@ def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1):
     A = sparse.triu(L @ L.T, format='csc')
     A += sparse.csc_matrix(np.linalg.inv(noise))
     U = deepcopy(A)
-    parallel_ichol(A.indptr, A.indices, A.data, U.data, sweeps=5)
+    parallel_ichol(A.indptr, A.indices, A.data, U.data, sweeps=sweeps)
     # ichol(U.indptr, U.indices, U.data)
     # py_ichol(A)
     return L, U, indices

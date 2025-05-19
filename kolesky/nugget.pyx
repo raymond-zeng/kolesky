@@ -17,22 +17,13 @@ cdef inline double innerprod(int iter1, int u1, int iter2, int u2, int[::1] indi
             iter2 += 1
     return prod
 
-# cdef double[:, ::1] deep_copy(double[:, ::1] data) noexcept nogil:
-#     cdef:
-#         int i, j
-#         double[:, ::1] copy = np.empty((data.shape[0], data.shape[1]), dtype=np.float64)
-#     for i in range(data.shape[0]):
-#         for j in range(data.shape[1]):
-#             copy[i, j] = data[i, j]
-#     return copy
-
 cpdef void ichol(int[::1] indptr, int[::1] indices, double[::1] data):
     # indptr = A.indptr #ind
     # indices = A.indices #jnd
     # data = A.data
     cdef:
         int i, j, iter_i, iter_j
-    for i in range(len(indptr) - 1):
+    for i in range(indptr.shape[0] - 1):
         for j in range(indptr[i], indptr[i + 1]):
             iter_i = indptr[i]
             iter_j = indptr[indices[j]]
