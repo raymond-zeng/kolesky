@@ -4,7 +4,6 @@ from kolesky.nugget import ichol
 from kolesky.nugget import parallel_ichol
 
 import numpy as np
-from scipy.spatial import KDTree
 import scipy.linalg
 import scipy.sparse as sparse
 import sklearn.gaussian_process.kernels as kernels
@@ -134,4 +133,25 @@ def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1, swee
     # ichol(U.indptr, U.indices, U.data)
     # py_ichol(A)
     return L, U, indices
-    
+
+def test_train_order(x_train, x_test, p=1):
+    train_order, train_lengths = p_reverse_maximin(x_train, p=p)
+    test_order, test_lengths = p_reverse_maximin(x_test, p=p)
+    x = np.vstack((x_test[test_order], x_train[train_order]))
+    order = np.append(test_order, train_order + len(test_order))
+    lengths = np.append(test_lengths, train_lengths)
+    return x, order, lengths
+
+def train_test_order(x_train, x_test, p=1):
+    train_order, train_lengths = p_reverse_maximin(x_train, p=p)
+    test_order, test_lengths = p_reverse_maximin(x_test, p=p)
+    x = np.vstack((x_train[train_order], x_test[test_order]))
+    order = np.append(train_order, test_order + len(train_order))
+    lengths = np.append(train_lengths, test_lengths)
+    return x, order, lengths
+
+def fast_joint_cholesky(x_train, x_test, kernel, rho, lamb, p=1):
+    x, order, lengths = test_train_order(x_train, x_test, p=p)
+    sparsity = sparsity_pattern(x, lengths, rho)
+    groups, agg_sparsity = __supernodes(sparsity, lengths, lamb)
+    return __aggregate_chol(x, kernel, agg_sparsity, groups), order
