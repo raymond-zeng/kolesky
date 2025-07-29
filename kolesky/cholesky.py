@@ -127,7 +127,7 @@ def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1, swee
     groups, agg_sparsity = __supernodes(sparsity, lengths, lamb)
     L = __aggregate_chol(ordered_points, kernel, agg_sparsity, groups)
     A = sparse.triu(L @ L.T, format='csc')
-    A += sparse.csc_matrix(np.linalg.inv(noise))
+    A += sparse.csc_matrix(np.diag(1 / noise))
     U = deepcopy(A)
     parallel_ichol(A.indptr, A.indices, A.data, U.data, sweeps=sweeps)
     # ichol(U.indptr, U.indices, U.data)
@@ -138,7 +138,8 @@ def test_train_order(x_train, x_test, p=1):
     train_order, train_lengths = p_reverse_maximin(x_train, p=p)
     test_order, test_lengths = p_reverse_maximin(x_test, p=p)
     x = np.vstack((x_test[test_order], x_train[train_order]))
-    order = np.append(test_order, train_order + len(test_order))
+    order = np.append(test_order, train_order)
+    order[:len(test_order)] += len(train_order)
     lengths = np.append(test_lengths, train_lengths)
     return x, order, lengths
 
@@ -146,9 +147,16 @@ def train_test_order(x_train, x_test, p=1):
     train_order, train_lengths = p_reverse_maximin(x_train, p=p)
     test_order, test_lengths = p_reverse_maximin(x_test, p=p)
     x = np.vstack((x_train[train_order], x_test[test_order]))
-    order = np.append(train_order, test_order + len(train_order))
+    order = np.append(train_order, test_order)
+    order[len(train_order):] += len(train_order)
     lengths = np.append(train_lengths, test_lengths)
     return x, order, lengths
+
+def joint_cholesky(x_train, x_test, kernel, rho, lamb, p=1):
+    x, order, lengths = train_test_order(x_train, x_test, p=p)
+    sparsity = sparsity_pattern(x, lengths, rho)
+    groups, agg_sparsity = __supernodes(sparsity, lengths, lamb)
+    return __aggregate_chol(x, kernel, agg_sparsity, groups), order
 
 def fast_joint_cholesky(x_train, x_test, kernel, rho, lamb, p=1):
     x, order, lengths = test_train_order(x_train, x_test, p=p)
