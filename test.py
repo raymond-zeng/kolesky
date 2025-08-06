@@ -33,56 +33,31 @@ def sparse_kl_div(A, L):
 # approx = np.linalg.inv(L @ L.T) @ U_tilde.T @ U_tilde @ noise
 # kl = kl_div(true, approx)
 # print("KL divergence:", kl)
-seed = 43
+seed = 42
 np.random.seed(seed)
-nTrain = 30
-nTest = 10
-noise = np.ones(nTrain + nTest) * 0.1
-h = 1 / nTrain
-xTrain = np.linspace(start=nTrain, stop = 1, num = nTrain)
-row1 = np.sin(2 * np.pi * xTrain)
-row2 = np.cos(2 * np.pi * xTrain)
-xTrain = np.vstack((row1, row2)).T
-# print(xTrain.shape)
-xTest = 0.1 * np.random.rand(nTest, 2)
-x = np.vstack((xTrain, xTest))
-xTrain = np.ascontiguousarray(xTrain, dtype=np.float64)
-for i in range(nTrain):
-    for j in range(i + 1, nTrain):
-        if np.isclose(xTrain[i, 0], xTrain[j, 0] and np.isclose(xTrain[i, 1], xTrain[j, 1])):
-            print(i, j)
-xTest = np.ascontiguousarray(xTest, dtype=np.float64)
-# for i in range(nTrain + nTest):
-#     for j in range(i + 1, nTrain + nTest):
-#         if np.isclose(x[i], x[j]):
-#             print(i, j)
-kernel = kernels.Matern(nu=0.5, length_scale=1)
-theta = kernel(x) + np.diag(noise)
-L = np.linalg.cholesky(theta)
-y = L @ np.random.randn(nTrain + nTest)
-
-mu, sigma, L, order = gp.estimate(xTrain, y[:nTrain], xTest, kernel, rho=3.0, lamb=1.5, noise=noise[:nTrain], p=1)
-#plot xTrain and yTrain in 3D
-ordered_xTrain = xTrain[order[:nTrain]]
-ordered_yTrain = y[:nTrain][order[:nTrain]]
-ordered_xTest = xTest[order[nTrain:] - nTrain]
-print(mu)
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(ordered_xTrain[:, 0], ordered_xTrain[:, 1], ordered_yTrain, c='b', label='Train Data')
-ax.scatter(ordered_xTrain[:, 0], ordered_xTrain[:, 1], mu[:nTrain], c='r', label='Predicted Mean')
-ax.scatter(ordered_xTest[:, 0], ordered_xTest[:, 1], mu[nTrain:], c='g', label='Predicted Test Mean')
-ax.set_xlabel('X1')
-ax.set_ylabel('X2')
-ax.set_zlabel('Y')
-ax.legend()
+# kernel = kernels.Matern(nu=0.5, length_scale=1)
+kernel = kernels.RBF(length_scale=1.0)
+x_train = np.random.uniform(-5, 5, 15).reshape(-1, 1)
+y_train = np.sin(0.9 * x_train)
+noise_std_dev = 0.4
+noise = np.random.normal(0, noise_std_dev, size=y_train.shape)
+y_train += noise
+x_test = np.linspace(-5, 5, 50).reshape(-1, 1)
+# mu, var, L = gp.fast_estimate(x_train, y_train, x_test, kernel, 3.0, 1.5, p=1)
+mu, var = gp.fast_estimate_with_noise(x_train, y_train, x_test, kernel, 5, 1.5, noise.flatten(), p=1)
+x_train = x_train.flatten()
+y_train = y_train.flatten()
+x_test = x_test.flatten()
+mu = mu.flatten()
+# var = var.flatten()
+plt.figure(figsize=(10, 5))
+plt.plot(x_train, y_train, 'ro', label='Training Data')
+plt.plot(x_test, mu, 'b-', label='Predicted Mean')
+# plot unnoisy curve
+plt.plot(x_test, np.sin(0.9 * x_test), 'g--', label='Unnoisy Function')
+plt.fill_between(x_test, mu - 1.96 * np.sqrt(var), mu + 1.96 * np.sqrt(var), color='lightblue', alpha=0.5, label='95% Confidence Interval')
+plt.title('Gaussian Process Regression with Fast Cholesky')
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.legend()
 plt.show()
-
-
-# noise = 0.1 * np.ones()
-# L, order = kolesky.test_ichol(points, kernel, 10.0)
-# ordered_points = points[order]
-# theta = kernel(ordered_points)
-# # print(L)
-# approx = L @ L.T
-# print(kl_div(approx, theta))

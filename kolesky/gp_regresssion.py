@@ -2,9 +2,10 @@ import numpy as np
 import scipy
 import scipy.sparse as sparse
 from kolesky.cholesky import joint_cholesky, fast_joint_cholesky
-from kolesky.nugget import ichol
+from kolesky.nugget import ichol, parallel_ichol
 from scipy.sparse.linalg import cg
 from scipy.sparse.linalg import LinearOperator
+from copy import deepcopy
 
 class IChol:
 
@@ -55,10 +56,41 @@ def fast_estimate(x_train, y_train, x_test, kernel, rho, lamb, p=1):
     inv_test_order, train_order = inv_order(order[:n]), order[n:] - n
     L11 = L[:n, :n]
     L21 = L[n:, :n]
-    mu = -sparse.linalg.solve_triangular(L11.T, L21.T @ y_train(train_order), lower=False)
-    e_i = sparse.linalg.solve_triangular(L11.T, np.eye(n), lower=False)
+    mu = -sparse.linalg.spsolve_triangular(L11.T, L21.T @ y_train[train_order], lower=False)
+    e_i = sparse.linalg.spsolve_triangular(L11, np.eye(n), lower=True)
     var = np.sum(e_i * e_i, axis=0)
     return mu[inv_test_order], var[inv_test_order], L
+
+def fast_estimate_with_noise(x_train, y_train, x_test, kernel, rho, lamb, noise, p=1):
+    n = len(x_test)
+    m = len(x_train)
+    L, order = fast_joint_cholesky(x_train, x_test, kernel, rho, lamb, p=p)
+    inv_test_order, train_order = inv_order(order[:n]), order[n:] - n
+    ordered_y_train = y_train[train_order]
+    ordered_noise = noise[train_order]
+    L11 = L[:n, :n]
+    L21 = L[n:, :n]
+    L22 = L[n:, n:]
+    # points = np.vstack((x_test[order[:n]], x_train[train_order]))
+    # cov = kernel(points)
+    # noiseCov = cov[n:, n:] + np.diag(ordered_noise * ordered_noise)
+    # Theta22_approx_inv= np.linalg.inv(noiseCov)
+    # Theta12_approx = cov[:n, n:]
+    A = sparse.triu(L22 @ L22.T, format='csc')
+    A += sparse.csc_matrix(np.diag(1 / (ordered_noise * ordered_noise)))
+    ichol(A.indptr, A.indices, A.data)
+    U22_tilde_inv = sparse.linalg.spsolve_triangular(A, np.eye(m), lower=False)
+    Theta22_approx_inv = np.diag(1 / (ordered_noise * ordered_noise)) @ U22_tilde_inv @ U22_tilde_inv.T @ L22 @ L22.T
+    L22_inv = sparse.linalg.spsolve_triangular(L22, np.eye(m), lower=True)
+    U12 = -sparse.linalg.inv(L11.T) @ L21.T @ L22_inv.T
+    Theta12_approx =  U12 @ L22_inv
+    mu = Theta12_approx @ Theta22_approx_inv @ ordered_y_train
+    mu = mu[inv_test_order]
+    L11_inv = sparse.linalg.spsolve_triangular(L11, np.eye(n), lower=True)
+    Theta11_approx = L11_inv.T @ L11_inv + U12 @ U12.T
+    cov = Theta11_approx - Theta12_approx @ Theta22_approx_inv @ Theta12_approx.T
+    var = np.diag(cov)
+    return mu, var
 
 def estimate(x_train, y_train, x_test, kernel, rho, lamb, noise, p=1):
     n = len(x_train)

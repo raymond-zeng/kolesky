@@ -105,8 +105,7 @@ cpdef tuple p_reverse_maximin(np.ndarray[np.float64_t, ndim=2] points, double[:,
         dists = np.array([[-i + inf] * p for i in range(n)])
     else:
         initial_tree = KDTree(initial)
-        dists = initial_tree.query(points, p)[0]
-        dists = dists.reshape(n, p)
+        dists = (initial_tree.query(points, p)[0]).reshape(n, p)
     tree = KDTree(points)
     heap = Heap(np.max(dists, axis=1), np.arange(n))
     for i in range(n - 1, -1, -1):

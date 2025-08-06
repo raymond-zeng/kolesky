@@ -29,8 +29,14 @@ def __supernodes(sparsity, lengths, lamb):
             agg_sparsity[j] = np.empty(len(s) - positions[j], dtype=int)
     return groups, agg_sparsity
 
+def __chol(theta, sigma = 1e-6):
+    try:
+        return np.linalg.cholesky(theta)
+    except np.linalg.LinAlgError:
+        return np.linalg.cholesky(theta + sigma * np.eye(len(theta)))
+
 def __cols(theta):
-    return np.flip(np.linalg.cholesky(np.flip(theta))).T
+    return np.flip(__chol(np.flip(theta))).T
 
 def __aggregate_chol(points, kernel, sparsity, groups):
     n = len(points)
@@ -136,10 +142,10 @@ def noise_cholesky(points, kernel, rho, lamb, noise, initial = None, p = 1, swee
 
 def test_train_order(x_train, x_test, p=1):
     train_order, train_lengths = p_reverse_maximin(x_train, p=p)
-    test_order, test_lengths = p_reverse_maximin(x_test, p=p)
+    test_order, test_lengths = p_reverse_maximin(x_test, initial = x_train, p=p)
     x = np.vstack((x_test[test_order], x_train[train_order]))
     order = np.append(test_order, train_order)
-    order[:len(test_order)] += len(train_order)
+    order[len(test_order):] += len(test_order)
     lengths = np.append(test_lengths, train_lengths)
     return x, order, lengths
 
