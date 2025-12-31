@@ -8,6 +8,7 @@ __pycache__/
 build/
 *.so
 *.c
+*.cpp
 *.html
 # numpy arrays
 *.npy
@@ -28,3 +29,5 @@ test/
 dist/
 *.egg-info
 repaired_wheels/
+.DS_Store
+uv.lock

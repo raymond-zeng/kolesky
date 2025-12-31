@@ -1,4 +1,5 @@
 from .maxheap cimport Heap
+from libcpp.vector cimport vector
 from scipy.spatial import KDTree
 import numpy as np
 cimport numpy as np
@@ -99,7 +100,7 @@ cpdef tuple p_reverse_maximin(np.ndarray[np.float64_t, ndim=2] points, double[:,
         list js
     inf = 1e6
     n = points.shape[0]
-    indices = np.empty(n, dtype = np.long)
+    indices = np.empty(n, dtype = np.int64)
     lengths = np.empty(n, dtype = np.float64)
     if initial is None or initial.shape[0] == 0:
         dists = np.array([[-i + inf] * p for i in range(n)])
@@ -142,3 +143,130 @@ cpdef object[::1] sparsity_pattern(double[:, ::1] points, double[::1] lengths, d
             if offset + j >= i
         ]
     return sparsity
+
+cpdef tuple optimized_sparsity_pattern(double[:, ::1] points, double[::1] lengths, double rho):
+    cdef:
+        int n = points.shape[0]
+        int i, k, offset, count
+        long j, real_index
+        double length_scale, r
+        
+        # CSR Row Pointers
+        long[::1] indptr = np.zeros(n + 1, dtype=np.int64)
+        
+        # C++ Vector for indices (Automatic dynamic array)
+        vector[int] indices
+        
+        # Tree variables
+        object tree
+        list neighbors
+    
+    tree = KDTree(points)
+    offset = 0
+    length_scale = lengths[0]
+    indptr[0] = 0
+
+    for i in range(n):
+        if lengths[i] > 2 * length_scale:
+            tree = KDTree(points[i:])
+            offset = i
+            length_scale = lengths[i]
+        
+        neighbors = tree.query_ball_point(points[i], rho * lengths[i])
+        
+        count = 0
+        for j in neighbors:
+            real_index = offset + j
+            if real_index >= i:
+                indices.push_back(real_index)
+                count += 1
+        
+        indptr[i + 1] = indptr[i] + count
+    
+    cdef long[:] indices_view = np.empty(indices.size(), dtype=np.int64)
+    for i in range(indices.size()):
+        indices_view[i] = indices[i]
+
+    return indices_view, indptr
+
+cpdef tuple supernodes(object sparsity, double[::1] lengths, double lamb):
+    cdef int n = lengths.shape[0]
+    cdef set candidates = set(range(n))
+    
+    # Use C++ vectors for dynamic appending
+    cdef vector[int] groups_data_vec
+    cdef vector[int] groups_indptr_vec
+    
+    # Store lengths for each node, then build indptr via cumsum
+    cdef int[:] agg_lengths = np.zeros(n, dtype=np.int32)
+    
+    # Store (node_index, s_list) pairs to fill agg_data later
+    cdef list node_slists = []
+    
+    cdef int i = 0
+    cdef int j, k, offset
+    cdef list group
+    cdef list s_list
+    cdef set s_set
+    cdef dict positions
+    
+    groups_indptr_vec.push_back(0)
+    
+    while len(candidates) > 0:
+        while i not in candidates:
+            i += 1
+            
+        group = sorted([j for j in sparsity[i] 
+                        if lengths[j] <= lamb * lengths[i] and j in candidates])
+        
+        # Append group members to groups_data
+        for j in group:
+            groups_data_vec.push_back(j)
+        groups_indptr_vec.push_back(groups_data_vec.size())
+        
+        candidates -= set(group)
+        
+        # Compute aggregate sparsity
+        s_set = set()
+        for j in group:
+            for k in sparsity[j]:
+                s_set.add(k)
+        s_list = sorted(list(s_set))
+        
+        positions = {k: idx for idx, k in enumerate(s_list)}
+        
+        # Store length for each group member and save data for later
+        for j in group:
+            offset = positions[j]
+            agg_lengths[j] = len(s_list) - offset
+            node_slists.append((j, s_list, offset))
+    
+    # Build agg_indptr from agg_lengths via cumsum
+    cdef int[:] agg_indptr = np.zeros(n + 1, dtype=np.int32)
+    cdef int cumsum = 0
+    for i in range(n):
+        agg_indptr[i] = cumsum
+        cumsum += agg_lengths[i]
+    agg_indptr[n] = cumsum
+    
+    # Now fill agg_data using the stored node_slists
+    cdef int[:] agg_data = np.zeros(cumsum, dtype=np.int32)
+    cdef int node_idx, slist_offset
+    cdef list slist
+    for item in node_slists:
+        node_idx = item[0]
+        slist = item[1]
+        slist_offset = item[2]
+        for k in range(len(slist) - slist_offset):
+            agg_data[agg_indptr[node_idx] + k] = slist[slist_offset + k]
+    
+    # Convert vectors to memoryviews
+    cdef int[:] groups_data = np.zeros(groups_data_vec.size(), dtype=np.int32)
+    cdef int[:] groups_indptr = np.zeros(groups_indptr_vec.size(), dtype=np.int32)
+    
+    for i in range(<int>groups_data_vec.size()):
+        groups_data[i] = groups_data_vec[i]
+    for i in range(<int>groups_indptr_vec.size()):
+        groups_indptr[i] = groups_indptr_vec[i]
+
+    return groups_data, groups_indptr, agg_data, agg_indptr
