@@ -14,18 +14,18 @@ cdef inline void update_dists(
     cdef:
         int p, index, i, insert
         long j
-        float d
+        double d
 
     p = dists.shape[1]
     for index in range(js.shape[0]):
         j = js[index]
         d = dists_k[index]
         # insert d into dists[j], pushing out the largest value
-        i = 0
+        insert = p
         for i in range(p):
             if d <= dists[j, i]:
+                insert = i
                 break
-        insert = i
         for i in range(p - 1, insert, -1):
             dists[j, i] = dists[j, i - 1]
         if insert < p:
@@ -63,7 +63,7 @@ cpdef tuple reverse_maximin(np.ndarray[np.float64_t, ndim=2] points, double[:, :
         double[::1] dists
         list js
     n = points.shape[0]
-    indices = np.empty(n, dtype = np.long)
+    indices = np.empty(n, dtype = np.int64)
     lengths = np.empty(n, dtype = np.float64)
     if initial is None or initial.shape[0] == 0:
         k = 0
