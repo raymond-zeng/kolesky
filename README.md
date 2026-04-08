@@ -7,6 +7,7 @@ Gaussian process (GP) regression can be approximated in two ways: a faster predi
 We will start by generating a synthetic dataset. The true equation is $f(x) = x\sin(x)$
 ```
 import numpy as np
+
 x_train = np.random.uniform(-5, 5, 15).reshape(-1, 1)
 x_test = np.linspace(-5, 5, 50).reshape(-1, 1)
 y_train = x_train * np.sin(x_train)

@@ -4,11 +4,16 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "kolesky"
 authors = [{name = "Raymond Zeng", email = "rzeng42@gatech.edu"}]
-#dependencies = ["numpy", "scipy", "scikit-learn", "tbb-devel>=2021.11.0", "libblas", "liblapack", "libzlib", "fftw", "hdf5==1.10.*", "gsl", "cgal-cpp"]
 dependencies = ["numpy", "scipy", "scikit-learn"]
 readme = "README.md"
-version = "0.1.3"
+version = "0.1.4a1"
 requires-python = ">= 3.10"
+[tool.cibuildwheel]
+build = "cp310-manylinux* cp311-manylinux* cp312-manylinux* cp313-manylinux*"
+test-requires = "pytest"
+test-command = "python -c \"import kolesky\""
+
 [tool.cibuildwheel.linux]
 manylinux-x86_64-image = "manylinux2014"
-manylinux-aarch64-image = "manylinux2014"
+archs = "x86_64"
+before-build = "pip install numpy cython"
