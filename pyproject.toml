@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "numpy", "cython"]
+requires = ["setuptools", "wheel", "numpy", "cython", "scipy"]
 build-backend = "setuptools.build_meta"
 [project]
 name = "kolesky"
